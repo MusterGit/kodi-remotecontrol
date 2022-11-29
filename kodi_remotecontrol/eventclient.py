@@ -122,6 +122,29 @@ class EventClient:
         pkt = self.get_header(psize=0, ptype=PT_PING)
         self.send_packet(pkt=pkt)
 
+    def send_json_command(self, command):
+        """send JSON-RPC command"""
+        api_url = "http://%s:%s/jsonrpc" % (self.api_host, self.api_http_port)
+        try:
+             logging.debug("Sending command...")
+             r = requests.post(url=api_url, json=command)
+
+             if r.status_code == 200:
+                 result = r.json()['result'])
+                 logging.debug("Backend response: %s" % result)
+                 return result
+
+             elif r.status_code == 401:
+                 logging.debug("Got an unauthorized response, make sure you don't have a password for the Web Server")
+
+             else:
+                 logging.debug("Got code: %i from backend, continuing..." % r.status_code)
+
+         except requests.exceptions.ConnectionError:
+             logging.debug("Failed to send command, make sure that Kodi is running.")
+
+         return None
+
     def send_action(self, msg):
         """send action packet
         https://kodi.wiki/view/Action_IDs
